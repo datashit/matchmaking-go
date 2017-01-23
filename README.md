@@ -8,3 +8,6 @@ Develop for mobile backend game server.
 * Chat
 * Contacts List
 * Parties
+
+# Technology
+* Go
