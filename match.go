@@ -13,12 +13,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{} // use default options
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+} // use default options
 type mmg struct {
 	name   string
 	c      *websocket.Conn
 	quit   chan error
-	sender chan bool
+	sender chan matchmaking.Response
 }
 
 func (m *mmg) WriteMessage(r matchmaking.Response) error {
@@ -32,6 +36,11 @@ func (m *mmg) WriteMessage(r matchmaking.Response) error {
 	err = m.c.WriteMessage(r.MessageType, msg)
 	return err
 }
+
+func (m *mmg) Writer() {
+
+}
+
 func (m *mmg) RUN(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -39,21 +48,21 @@ func (m *mmg) RUN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.Close()
-	m.c = c
 
-	for {
-		select {
-		case s := <-m.sender:
-			log.Println(s) // Send data
-		case q := <-m.quit: // IF socket error close to websocket
-			log.Println(q)
-			break
-		default:
+	m.c = c                                       // Added Conn
+	m.sender = make(chan matchmaking.Response, 1) // Open channel Response
+	m.quit = make(chan error, 1)                  // Open channel error
+
+	go func() { // Start Reader Goroutine
+		log.Printf("%v Read GO", m.name)
+		for {
 			mt, message, err := c.ReadMessage()
 			if err != nil {
-				m.quit <- err
+				m.quit <- err // Send close command
+				<-m.quit      // Wait closing socket
+				break         // closed Goroutine
 			}
-			log.Printf("recv: %s", message)
+			log.Printf("%v - recv: %s", m.name, message)
 
 			var req procesJob
 			req.m = m
@@ -61,9 +70,28 @@ func (m *mmg) RUN(w http.ResponseWriter, r *http.Request) {
 			json.Unmarshal(matchmaking.Decoder(message), &req.req) // Decode message
 			req.req.MessageType = mt                               // Message Type Added
 
-			jobs <- req //  Job send to channel
-
+			jobs <- req //  send to Job
 		}
 
+	}()
+
+	for {
+		select {
+		case s := <-m.sender:
+			log.Println("work sender")
+			data, err := json.Marshal(s)
+			if err != nil {
+				continue
+			}
+			log.Println("data sending")
+			c.WriteMessage(s.MessageType, data)
+			log.Println(s) // Send data
+		case q := <-m.quit: // IF socket error close to websocket
+			log.Println(q)
+			m.quit <- q // send to close flag for runing goroutine
+			return
+			//		default:
+
+		}
 	}
 }

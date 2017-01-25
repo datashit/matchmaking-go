@@ -4,7 +4,13 @@
 
 package matchmaking
 
-import "github.com/datashit/matchmaking-go/Message"
+import (
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/datashit/matchmaking-go/Message"
+)
 
 type procesJob struct {
 	m   *mmg
@@ -29,6 +35,25 @@ func proces(job <-chan procesJob) {
 		case "CHAT":
 		case "CONTACTS":
 		case "PARTY":
+		default:
+			var x matchmaking.Response
+			x.Command = "BACKDEF"
+			x.MessageType = j.req.MessageType
+			x.Data = "NO DATA"
+			x.ServerID = j.m.name
+			j.m.sender <- x
+			log.Println("Work proces")
 		}
 	}
+}
+
+var simultune int
+
+// Accept function incomming client accept and join matchmaking server.
+func Accept(w http.ResponseWriter, r *http.Request) {
+	simultune++
+	var m mmg
+	m.name = "mmg-" + strconv.Itoa(simultune)
+	m.RUN(w, r)
+
 }
