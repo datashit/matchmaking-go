@@ -8,14 +8,16 @@ package matchmaking
 type Request struct {
 	MessageType int
 	UserID      string // User ID
+	Function    string // Function
 	Command     string // Command
-	Data        string // Command Data JSON
+	Data        []byte // Command Data JSON
 }
 
 // Response data struct
 type Response struct {
 	MessageType int
 	ServerID    string // Server ID
+	Function    string // Function
 	Command     string // Command
-	Data        string // Command Data JSON
+	Data        []byte // Command Data JSON
 }

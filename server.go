@@ -5,7 +5,6 @@
 package matchmaking
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -29,8 +28,9 @@ func CreateProcesWorker(workerSize int) {
 
 func proces(job <-chan procesJob) {
 	for j := range job {
-		switch j.req.Command {
+		switch j.req.Function {
 		case "MATCH":
+			match(&j)
 		case "LOBBY":
 		case "CHAT":
 		case "CONTACTS":
@@ -39,10 +39,9 @@ func proces(job <-chan procesJob) {
 			var x matchmaking.Response
 			x.Command = "BACKDEF"
 			x.MessageType = j.req.MessageType
-			x.Data = "NO DATA"
+			x.Data = []byte("NO DATA")
 			x.ServerID = j.m.name
 			j.m.sender <- x
-			log.Println("Work proces")
 		}
 	}
 }
@@ -52,8 +51,7 @@ var simultune int
 // Accept function incomming client accept and join matchmaking server.
 func Accept(w http.ResponseWriter, r *http.Request) {
 	simultune++
-	var m mmg
-	m.name = "mmg-" + strconv.Itoa(simultune)
+	m := newClient("mmg-" + strconv.Itoa(simultune))
 	m.RUN(w, r)
 
 }
