@@ -1,6 +1,9 @@
 package matchmaking
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"log"
+)
 
 type sFind struct {
 	Location string // Game server Location
@@ -18,7 +21,14 @@ type sfindJob struct {
 
 func matchFind(job *procesJob) {
 
-	var sf sFind
-	json.Unmarshal(job.req.Data, &sf)
+	var sfjob sfindJob
+	sfjob.UserID = job.req.UserID
+	sfjob.m = job.m
+
+	json.Unmarshal(job.req.Data, &sfjob.sfind)
+
+	log.Println("matchFind")
+	findjobs <- sfjob
+	log.Println("matchFind job sent")
 
 }

@@ -24,6 +24,7 @@ func CreateProcesWorker(workerSize int) {
 	for w := 1; w <= workerSize; w++ {
 		go proces(jobs)
 	}
+	CreateMatchWorker(workerSize)
 }
 
 func proces(job <-chan procesJob) {
