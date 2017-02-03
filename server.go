@@ -5,8 +5,9 @@
 package matchmaking
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
+	"sync/atomic"
 
 	"github.com/datashit/matchmaking-go/Message"
 )
@@ -47,12 +48,15 @@ func proces(job <-chan procesJob) {
 	}
 }
 
-var simultune int
+var simultaneous int32
 
 // Accept function incomming client accept and join matchmaking server.
 func Accept(w http.ResponseWriter, r *http.Request) {
-	simultune++
-	m := newClient("mmg-" + strconv.Itoa(simultune))
+	fmt.Printf("Simultaneous: %v \r\n", atomic.AddInt32(&simultaneous, 1))
+
+	m := newClient("Client")
 	m.RUN(w, r)
+
+	fmt.Printf("Simultaneous: %v \r\n", atomic.AddInt32(&simultaneous, -1))
 
 }

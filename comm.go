@@ -25,6 +25,11 @@ type mmg struct {
 	sender chan matchmaking.Response
 }
 
+func (m *mmg) Close() {
+	close(m.quit)
+	close(m.sender)
+}
+
 // NewMMG create mmg and  return created mmg
 func newClient(Name string) mmg {
 	return mmg{name: Name, // Set client name
@@ -78,7 +83,6 @@ func (m *mmg) RUN(w http.ResponseWriter, r *http.Request) {
 
 			jobs <- req //  send to Job
 		}
-
 	}()
 
 	for {

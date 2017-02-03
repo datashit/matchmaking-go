@@ -19,6 +19,7 @@ func CreateMatchWorker(workerSize int) {
 func matchProces(job <-chan sfindJob) {
 	for j := range job {
 		log.Println("Work Match Proces")
+
 		var res matchmaking.Response
 		res.MessageType = 1
 		res.Function = "MATCH"
