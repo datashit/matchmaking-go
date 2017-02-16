@@ -19,6 +19,9 @@ type procesJob struct {
 
 var jobs = make(chan procesJob, 1000)
 
+// ServerName server name
+var ServerName string
+
 // CreateProcesWorker create pool for proces function
 // workerSize The number of Goroutine will work
 func CreateProcesWorker(workerSize int) {
@@ -58,5 +61,10 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 	m.RUN(w, r)
 
 	fmt.Printf("Simultaneous: %v \r\n", atomic.AddInt32(&simultaneous, -1))
+}
 
+// INIT Initializes mmg server name: Server Name workerSize: worker pool size
+func INIT(name string, workerSize int) {
+	ServerName = name
+	CreateProcesWorker(workerSize)
 }
