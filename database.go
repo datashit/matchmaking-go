@@ -13,7 +13,11 @@ var pool = redis.Pool{MaxIdle: 20, MaxActive: 100, Dial: func() (redis.Conn, err
 	return redis.Dial("tcp", *redisServer)
 }}
 
-var c = pool.Get()
+var c redis.Conn
+
+func redisInit() {
+	c = pool.Get()
+}
 
 func getKey(key string) string {
 	v, err := redis.String(c.Do("GET", key))
