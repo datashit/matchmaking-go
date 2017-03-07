@@ -1,3 +1,6 @@
+# CI
+![Build Status](https://travis-ci.org/datashit/matchmaking-go.svg?branch=master)
+
 # Matchmaking-Go
 Matchmaking Game Server
 Develop for mobile backend game server.
